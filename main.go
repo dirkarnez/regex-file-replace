@@ -5,12 +5,29 @@ import (
 	"regexp"
 )
 
+var (
+	regexp string
+	filepath string 
+	replacement string
+)
+
+
 func main() {
-	re := regexp.MustCompile(`(?m)^cmd = .*`)
+	flag.StringVar(&regexp, "regexp", "", "regexp")
+	flag.StringVar(&filepath, "filepath", "", "filepath")
+	flag.StringVar(&replacement, "replacement", "", "replacement")
+	flag.Parse()
 	
-	fmt.Println(re.ReplaceAllString(`[Launcher]
-stream = production
-auid = AutodeskInc.Fusion360
-cmd = ""C:\Users\runneradmin\AppData\Local\Autodesk\webdeploy\production\1a197c6e79bef01edef1dc4f317d9f597820e633\Fusion360.exe""
-global = False`, `cmd = ""Fusion360.exe""`))
+	re := regexp.MustCompile(fmt.Sprintf(`(?m)%s`, regexp)) // ^cmd = .*
+	content := re.ReplaceAllString(ReadFileToString(filepath), replacement)
+	fmt.Println(content) // cmd = ""Fusion360.exe""
+	err := os.WriteFile(filepath, []byte(content), 0644)
+}
+
+func ReadFileToString(path string) (string, error) {
+	b, err := os.ReadFile(path) // just pass the file name
+	if err != nil {
+		return err
+	}
+	return string(b), nil
 }
